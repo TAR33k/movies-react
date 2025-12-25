@@ -24,6 +24,7 @@ const App = () => {
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [sort, setSort] = useState("popularity.desc");
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
 
@@ -34,7 +35,7 @@ const App = () => {
     try {
       const endpoint = query
         ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+        : `${API_BASE_URL}/discover/movie?sort_by=${sort}`;
 
       const response = await fetch(endpoint, API_OPTIONS);
 
@@ -50,7 +51,8 @@ const App = () => {
         return;
       }
 
-      setMovieList(data.results || []);
+      const sortedData = data.results.sort((a, b) => sortData(a, b));
+      setMovieList(sortedData || []);
 
       if (query && data.results.length > 0) {
         await updateSearchCount(query, data.results[0]);
@@ -60,6 +62,22 @@ const App = () => {
       setErrorMessage("Error fetching movies. Please try again later");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const sortData = (a, b) => {
+    switch (sort) {
+      case "title.asc":
+        if (a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+        else return 1;
+      case "primary_release_date.desc":
+        if (b.release_date < a.release_date) return -1;
+        else return 1;
+      case "vote_average.desc":
+        if (b.vote_average < a.vote_average) return -1;
+        else return 1;
+      default:
+        break;
     }
   };
 
@@ -74,7 +92,7 @@ const App = () => {
 
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, sort]);
 
   useEffect(() => {
     loadTrendingMovies();
@@ -110,6 +128,16 @@ const App = () => {
 
         <section className="all-movies">
           <h2>All Movies</h2>
+
+          <div className="filters flex justify-end">
+            <p className="text-white">Sort By</p>
+            <select onChange={(event) => setSort(event.target.value)}>
+              <option value="">Default (Popularity)</option>
+              <option value="title.asc">Name</option>
+              <option value="primary_release_date.desc">Year</option>
+              <option value="vote_average.desc">Rating</option>
+            </select>
+          </div>
 
           {isLoading ? (
             <Spinner />

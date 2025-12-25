@@ -140,6 +140,20 @@
       @apply text-gray-100 font-medium text-base;
     }
   }
+
+  .filters {
+    & p {
+      @apply p-1;
+    }
+
+    & select {
+      @apply bg-transparent border-2 border-white ml-1 text-base text-gray-200 p-1 placeholder-light-200 outline-hidden;
+    }
+
+    & select option {
+      @apply bg-primary;
+    }
+  }
 }
 
 @utility text-gradient {
