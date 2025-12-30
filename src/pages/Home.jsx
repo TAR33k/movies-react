@@ -27,8 +27,11 @@ const Home = () => {
       );
       const data = await response.json();
       const map = {};
-      data.genres.forEach((g) => (map[g.id] = g.name));
-      setGenresMap(map);
+
+      if (data.genres) {
+        data.genres.forEach((g) => (map[g.id] = g.name));
+        setGenresMap(map);
+      }
     } catch (error) {
       console.error("Failed to fetch genres", error);
       navigate("/error", { state: { error: error } });
@@ -82,7 +85,11 @@ const Home = () => {
   const loadTrendingMovies = async () => {
     try {
       const movies = await getTrendingMovies();
-      setTrendingMovies(movies);
+      if (movies) {
+        setTrendingMovies(movies);
+      } else {
+        throw new Error("Failed to fetch trending movies");
+      }
     } catch (error) {
       console.error("Error fetching trending movies", error);
       navigate("/error", { state: { error: error } });
@@ -118,7 +125,14 @@ const Home = () => {
               {trendingMovies.map((movie, index) => (
                 <li key={movie.$id}>
                   <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.title} />
+                  <img
+                    src={
+                      movie.poster_url.slice(-4) !== "null"
+                        ? movie.poster_url
+                        : "/no-movie.png"
+                    }
+                    alt={movie.title}
+                  />
                 </li>
               ))}
             </ul>
